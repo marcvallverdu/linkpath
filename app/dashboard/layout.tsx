@@ -2,9 +2,10 @@
 
 import { ReactNode, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useUser, UserButton } from "@clerk/nextjs";
 import { useMutation, useQuery } from "convex/react";
+import { api } from "../../convex/_generated/api";
 import {
   CreditCard,
   Gauge,
@@ -23,10 +24,11 @@ const navItems = [
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { user, isLoaded } = useUser();
-  const ensureProfile = useMutation("profiles:ensureProfile");
+  const router = useRouter();
+  const ensureProfile = useMutation(api.profiles.ensureProfile);
   const hasProvisioned = useRef(false);
   const pathname = usePathname();
-  const context = useQuery("profiles:getDashboardContext");
+  const context = useQuery(api.profiles.getDashboardContext);
 
   useEffect(() => {
     if (!isLoaded || !user || hasProvisioned.current) {
@@ -39,6 +41,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       hasProvisioned.current = false;
     });
   }, [ensureProfile, isLoaded, user]);
+
+  // Redirect to onboarding if not completed
+  useEffect(() => {
+    if (
+      context?.profile &&
+      !context.profile.onboardingCompleted &&
+      !pathname.startsWith("/dashboard/onboarding")
+    ) {
+      router.push("/dashboard/onboarding");
+    }
+  }, [context, pathname, router]);
 
   const organization = context?.organization;
   const creditBalance = organization?.creditBalance ?? 0;

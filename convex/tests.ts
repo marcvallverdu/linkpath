@@ -38,6 +38,16 @@ export const create = mutation({
       throw new Error("Insufficient credits");
     }
 
+    // Rate limit: max 1 test per 3 seconds per org
+    const recentTests = await ctx.db
+      .query("tests")
+      .withIndex("by_org", (q) => q.eq("orgId", profile.currentOrgId))
+      .order("desc")
+      .take(1);
+    if (recentTests.length > 0 && Date.now() - recentTests[0].createdAt < 3000) {
+      throw new Error("Please wait a few seconds between tests");
+    }
+
     const now = Date.now();
     const testId = await ctx.db.insert("tests", {
       orgId: profile.currentOrgId,

@@ -149,11 +149,36 @@ export const executeTest = internalAction({
         });
       }
 
-      // 5. Build report (without the base64 screenshot to save space)
+      // 5. Build report (strip heavy data to stay under Convex 1MB doc limit)
+      const trimmedChain = (result.redirectChain || []).map(
+        (hop: { url: string; statusCode: number; headers?: Record<string, string> }) => ({
+          url: hop.url,
+          statusCode: hop.statusCode,
+          // Keep only useful headers, drop the rest
+          server: hop.headers?.["server"],
+          location: hop.headers?.["location"],
+          setCookie: hop.headers?.["set-cookie"],
+        })
+      );
+
+      // Limit cookies to first 100 to avoid bloat
+      const trimmedCookies = (result.cookies || []).slice(0, 100).map(
+        (c: Record<string, unknown>) => ({
+          name: c.name,
+          domain: c.domain,
+          path: c.path,
+          value: String(c.value || "").slice(0, 200),
+          httpOnly: c.httpOnly,
+          secure: c.secure,
+          sameSite: c.sameSite,
+          expires: c.expires,
+        })
+      );
+
       const report = {
-        redirectChain: result.redirectChain,
+        redirectChain: trimmedChain,
         finalUrl: result.finalUrl,
-        cookies: result.cookies,
+        cookies: trimmedCookies,
         networkDetected: result.networkDetected,
         parameterPreservation: result.parameterPreservation,
         timing: result.timing,
@@ -179,6 +204,53 @@ export const executeTest = internalAction({
       });
       await ctx.runMutation(internal.testPipeline.refundCredits, { testId });
     }
+  },
+});
+
+// Cleanup stale running tests (call periodically via cron or scheduled job)
+export const cleanupStaleTests = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+
+    // Find tests stuck in "running" for > 5 minutes
+    const staleTests = await ctx.db
+      .query("tests")
+      .withIndex("by_created")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("status"), "running"),
+          q.lt(q.field("createdAt"), fiveMinutesAgo)
+        )
+      )
+      .collect();
+
+    for (const test of staleTests) {
+      await ctx.db.patch(test._id, {
+        status: "failed",
+        errorMessage: "Test timed out (no response from worker)",
+        completedAt: Date.now(),
+      });
+
+      // Refund credits
+      const org = await ctx.db.get(test.orgId);
+      if (org) {
+        const newBalance = org.creditBalance + test.creditsCharged;
+        await ctx.db.patch(test.orgId, { creditBalance: newBalance });
+        await ctx.db.insert("creditTransactions", {
+          orgId: test.orgId,
+          profileId: test.createdBy,
+          amount: test.creditsCharged,
+          type: "refund",
+          testId: test._id,
+          note: "Refund for timed-out test",
+          balanceAfter: newBalance,
+          createdAt: Date.now(),
+        });
+      }
+    }
+
+    return { cleaned: staleTests.length };
   },
 });
 

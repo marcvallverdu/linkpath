@@ -1,6 +1,16 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { nanoid } from "nanoid";
+
+function generateShareId(length = 12): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  for (let i = 0; i < length; i++) {
+    result += chars[bytes[i] % chars.length];
+  }
+  return result;
+}
 
 // Enable sharing for a test
 export const enableShare = mutation({
@@ -27,7 +37,7 @@ export const enableShare = mutation({
       return { shareId: test.shareId };
     }
 
-    const shareId = nanoid(12);
+    const shareId = generateShareId(12);
     await ctx.db.patch(args.testId, { shareId, shareEnabled: true });
     return { shareId };
   },

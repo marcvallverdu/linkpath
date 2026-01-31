@@ -1,10 +1,10 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery, useMutation, useAction } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLES: Record<string, { label: string; class: string }> = {
@@ -104,8 +104,42 @@ export default function TestDetailPage() {
   const test = useQuery(api.tests.get, { testId });
   const screenshots = useQuery(api.tests.getScreenshots, { testId });
   const createTest = useMutation(api.tests.create);
+  const enableShare = useMutation(api.share.enableShare);
+  const disableShare = useMutation(api.share.disableShare);
 
   const [screenshotExpanded, setScreenshotExpanded] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
+
+  const handleToggleShare = useCallback(async () => {
+    if (!test) return;
+    setShareLoading(true);
+    try {
+      if (test.shareEnabled) {
+        await disableShare({ testId });
+      } else {
+        const result = await enableShare({ testId });
+        if (result.shareId) {
+          const url = `${window.location.origin}/share/${result.shareId}`;
+          await navigator.clipboard.writeText(url);
+          setShareCopied(true);
+          setTimeout(() => setShareCopied(false), 2000);
+        }
+      }
+    } catch (e) {
+      console.error("Share toggle failed:", e);
+    } finally {
+      setShareLoading(false);
+    }
+  }, [test, testId, enableShare, disableShare]);
+
+  const handleCopyShareLink = useCallback(async () => {
+    if (!test?.shareId) return;
+    const url = `${window.location.origin}/share/${test.shareId}`;
+    await navigator.clipboard.writeText(url);
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  }, [test]);
 
   if (test === undefined) {
     return (
@@ -159,6 +193,30 @@ export default function TestDetailPage() {
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge status={test.status} />
+          {test.status === "success" && (
+            <>
+              {test.shareEnabled && test.shareId && (
+                <button
+                  onClick={handleCopyShareLink}
+                  className="rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:border-slate-500"
+                >
+                  {shareCopied ? "✓ Copied!" : "Copy Link"}
+                </button>
+              )}
+              <button
+                onClick={handleToggleShare}
+                disabled={shareLoading}
+                className={cn(
+                  "rounded-md px-3 py-2 text-sm font-medium transition",
+                  test.shareEnabled
+                    ? "border border-amber-700 text-amber-400 hover:bg-amber-900/20"
+                    : "border border-emerald-700 text-emerald-400 hover:bg-emerald-900/20"
+                )}
+              >
+                {shareLoading ? "..." : test.shareEnabled ? "Unshare" : "Share"}
+              </button>
+            </>
+          )}
           <button
             onClick={handleRunAgain}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500"

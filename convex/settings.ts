@@ -21,6 +21,28 @@ export const getCreditHistory = query({
   },
 });
 
+export const completeOnboarding = mutation({
+  args: {
+    role: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+      .unique();
+    if (!profile) throw new Error("Profile not found");
+
+    const patch: Record<string, unknown> = { onboardingCompleted: true };
+    if (args.role) patch.role = args.role;
+
+    await ctx.db.patch(profile._id, patch);
+    return { success: true };
+  },
+});
+
 export const updateProfile = mutation({
   args: {
     name: v.optional(v.string()),

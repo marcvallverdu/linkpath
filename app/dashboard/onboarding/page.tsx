@@ -26,7 +26,7 @@ export default function OnboardingPage() {
   const [testUrl, setTestUrl] = useState("");
 
   const context = useQuery(api.profiles.getDashboardContext);
-  const updateProfile = useMutation(api.settings.updateProfile);
+  const completeOnboarding = useMutation(api.settings.completeOnboarding);
   const createTest = useMutation(api.tests.create);
 
   // If already onboarded, redirect
@@ -36,7 +36,6 @@ export default function OnboardingPage() {
   }
 
   const handleRoleSelect = async () => {
-    // Save role (we'll add role to updateProfile args)
     setStep(2);
   };
 
@@ -50,15 +49,16 @@ export default function OnboardingPage() {
     }
 
     try {
+      await completeOnboarding({ role: role || undefined });
       const result = await createTest({ url: testUrl, testType: "quick_check" });
-      // Mark onboarding as complete would need a mutation
       router.push(`/dashboard/tests/${result.testId}`);
     } catch (e) {
       console.error("Failed to create test:", e);
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
+    await completeOnboarding({ role: role || undefined });
     router.push("/dashboard");
   };
 
