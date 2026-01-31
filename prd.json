@@ -1,0 +1,162 @@
+[
+  {
+    "id": "story-001",
+    "phase": "foundation",
+    "description": "Project scaffolding: Next.js 15 App Router + Convex + Tailwind v4 + shadcn/ui",
+    "acceptance": "Running `npm run dev` starts the app on localhost:3000 with a hello world page. Convex dev server connects. Tailwind classes render. shadcn/ui Button component works. TypeScript strict mode enabled. ESLint + Prettier configured.",
+    "priority": 1,
+    "passes": false
+  },
+  {
+    "id": "story-002",
+    "phase": "foundation",
+    "description": "Convex schema: deploy all MVP tables (profiles, organizations, orgMembers, tests, screenshots, creditTransactions, featureFlags)",
+    "acceptance": "Running `npx convex dev` deploys schema without errors. All tables exist with correct fields, types, and indexes as defined in PRD section 5. Validation functions exist for all field types.",
+    "priority": 2,
+    "passes": false
+  },
+  {
+    "id": "story-003",
+    "phase": "foundation",
+    "description": "Auth: Convex Auth with Google OAuth + email/password sign-up and sign-in",
+    "acceptance": "User can sign up with Google OAuth or email/password. User can sign in with either method. Auth state persists across page refreshes. Sign-out works. Auth redirects work (unauthenticated users → /login, authenticated users → /dashboard).",
+    "priority": 3,
+    "passes": false
+  },
+  {
+    "id": "story-004",
+    "phase": "foundation",
+    "description": "Auto-provisioning: on signup, create profile + personal org + grant 50 free credits",
+    "acceptance": "When a new user signs up, a profile record is created, a personal organization (is_personal=true, name='Personal') is created, user is added as 'owner' in orgMembers, and a creditTransaction of type 'welcome_bonus' with amount 50 is recorded. Organization creditBalance shows 50.",
+    "priority": 4,
+    "passes": false
+  },
+  {
+    "id": "story-005",
+    "phase": "foundation",
+    "description": "App shell: dashboard layout with sidebar navigation, header with credit balance, and responsive design",
+    "acceptance": "Authenticated users see a dashboard layout with: sidebar (Dashboard, Link Checks, Monitoring [disabled], Settings), header with org name + credit balance badge + user avatar/menu. Layout is responsive — sidebar collapses on mobile. Active nav item is highlighted. Clicking 'Link Checks' navigates to /dashboard/tests. Clicking 'Settings' navigates to /dashboard/settings.",
+    "priority": 5,
+    "passes": false
+  },
+  {
+    "id": "story-006",
+    "phase": "core-testing",
+    "description": "Test creation form: URL input with validation + test type selector + submit button",
+    "acceptance": "Dashboard shows a prominent URL input field with placeholder 'Paste your affiliate link...'. Test type selector shows Quick Link Check (1 credit) and CMP Consent Test (3 credits) with descriptions. Submit button shows credit cost and is disabled when URL is empty or credits insufficient. Invalid URLs show error message. Form submits and creates a test record in Convex with status 'queued'.",
+    "priority": 6,
+    "passes": false
+  },
+  {
+    "id": "story-007",
+    "phase": "core-testing",
+    "description": "Network detection: detect affiliate network from URL using regex patterns for Awin, CJ, Rakuten, Impact, ShareASale, Amazon",
+    "acceptance": "A utility function detectNetwork(url) correctly identifies: Awin (awin1.com, awltovhc.com, zenaps.com), CJ (dpbolvw.net, jdoqocy.com, etc.), Rakuten (click.linksynergy.com), Impact (impact.com, .sjv.io, .evyy.net), ShareASale (shareasale.com, shrsl.com), Amazon (amazon.* with tag= param, amzn.to). Unknown URLs return 'unknown'. Unit tests pass for all patterns with at least 3 test URLs per network.",
+    "priority": 7,
+    "passes": false
+  },
+  {
+    "id": "story-008",
+    "phase": "core-testing",
+    "description": "Playwright browser worker: HTTP server that accepts test requests, runs Playwright, returns results",
+    "acceptance": "A Node.js HTTP server in /worker directory that: accepts POST /run with {testId, url, testType}, launches Playwright Chromium, follows all redirects capturing the full chain (URL + status code + headers at each hop), captures all cookies set on the final landing page, takes a screenshot of the final page, detects affiliate network from redirect chain, returns JSON result with {redirectChain, cookies, networkDetected, screenshot (base64), timing}. Server runs locally for dev, has a Dockerfile for production. Include health check endpoint GET /health.",
+    "priority": 8,
+    "passes": false
+  },
+  {
+    "id": "story-009",
+    "phase": "core-testing",
+    "description": "Test execution pipeline: Convex action that calls browser worker, stores results, updates test status in real-time",
+    "acceptance": "When a test is created with status 'queued', a Convex scheduled action fires immediately. The action: deducts credits from org balance, updates test status to 'running', calls the browser worker HTTP endpoint, stores the result in test.report (JSONB), uploads screenshot to Convex file storage, creates screenshot record, updates test status to 'success' or 'failed'. If worker fails, credits are refunded and status set to 'failed' with error_message. Test status updates are visible in real-time on the dashboard via Convex useQuery.",
+    "priority": 9,
+    "passes": false
+  },
+  {
+    "id": "story-010",
+    "phase": "core-testing",
+    "description": "Quick Link Check results view: show redirect chain, network detected, cookies, parameter preservation, screenshot",
+    "acceptance": "Test detail page (/dashboard/tests/[id]) shows: status badge (queued/running/success/failed), detected affiliate network with logo/icon, full redirect chain as a visual flow (URL → URL → URL with status codes), list of cookies set (name, domain, value preview, httpOnly, secure, sameSite), parameter preservation check (were affiliate params maintained through redirects?), landing page screenshot (expandable), test timing, and a 'Run Again' button. Page updates in real-time while test is running.",
+    "priority": 10,
+    "passes": false
+  },
+  {
+    "id": "story-011",
+    "phase": "core-testing",
+    "description": "CMP Consent Test: detect cookie banner, simulate accept/reject, compare tracking cookies before and after consent",
+    "acceptance": "CMP test extends Quick Link Check by: detecting common CMP providers (OneTrust, CookieBot, TrustArc, Quantcast, Didomi, custom) via DOM inspection, capturing cookies BEFORE consent interaction, simulating 'Accept All' consent click, capturing cookies AFTER consent interaction, comparing before/after cookie state, highlighting affiliate-relevant cookies that appeared/disappeared. Results show: CMP provider detected, consent action taken, cookie diff table (before vs after), verdict (tracking survives consent: pass/fail). Falls back to basic Quick Link Check if no CMP detected.",
+    "priority": 11,
+    "passes": false
+  },
+  {
+    "id": "story-012",
+    "phase": "dashboard",
+    "description": "Test history list: paginated list of all tests with filtering by status, network, test type, and date range",
+    "acceptance": "Link Checks page (/dashboard/tests) shows a table/list of all tests for the current org. Columns: URL (truncated), network (icon + name), test type, status (color badge), created date, credits used. Supports: filtering by status (all/success/failed/running), filtering by network, filtering by test type, date range picker, pagination (20 per page). Empty state shows prompt to run first test. List updates in real-time when new tests complete.",
+    "priority": 12,
+    "passes": false
+  },
+  {
+    "id": "story-013",
+    "phase": "dashboard",
+    "description": "Dashboard home: summary stats, recent tests, and quick action to start new test",
+    "acceptance": "Dashboard home (/dashboard) shows: stats cards (total tests, pass rate, credits remaining, tests this month), recent 5 tests as compact cards, prominent 'New Check' button/input. Stats update in real-time. If user has no tests, show onboarding prompt with example affiliate link.",
+    "priority": 13,
+    "passes": false
+  },
+  {
+    "id": "story-014",
+    "phase": "billing",
+    "description": "Stripe integration: subscription checkout for Pro plan ($49/mo) via Stripe Checkout + webhook handler",
+    "acceptance": "Settings page shows current plan (Free) with upgrade button. Clicking 'Upgrade to Pro' opens Stripe Checkout with Pro plan ($49/mo). On successful payment, Stripe webhook fires, Convex mutation updates org plan to 'pro', grants 5000 monthly credits, creates credit_transaction record. User returns to settings page showing Pro plan badge. Stripe Customer Portal accessible for managing subscription. Handle webhook events: checkout.session.completed, invoice.payment_succeeded, customer.subscription.updated, customer.subscription.deleted.",
+    "priority": 14,
+    "passes": false
+  },
+  {
+    "id": "story-015",
+    "phase": "billing",
+    "description": "Credit balance tracking: deduct on test creation, show balance in header, warn when low, block when zero",
+    "acceptance": "Header always shows current credit balance with icon. When credits < 10: show amber warning. When credits = 0: test creation is blocked with 'Out of credits' message and upgrade CTA. Every test deduction creates a credit_transaction record (type: 'test_charge', negative amount). Credit balance is calculated from org.creditBalance (denormalized, updated atomically with test creation). Settings page shows credit transaction history.",
+    "priority": 15,
+    "passes": false
+  },
+  {
+    "id": "story-016",
+    "phase": "landing",
+    "description": "Landing page: hero section with URL input, problem stats, feature overview, pricing table, CTA",
+    "acceptance": "Public landing page at / (not behind auth) with: navigation (Features, Pricing, Log in, Get Started Free), hero with headline 'Stop losing commissions to broken affiliate tracking', subheadline, URL input that redirects to signup, social proof stats ($2.4B lost, 14% loss rate, <30s test time), problem section (broken redirects, CMP failures, link rot), 3-step how it works, test type cards (4 levels), pricing table (Free, Pro), footer. Page is responsive, fast (Server Components), and SEO-optimized with proper meta tags. URL input on hero submits to /signup?url={encoded_url} so first test is pre-populated after signup.",
+    "priority": 16,
+    "passes": false
+  },
+  {
+    "id": "story-017",
+    "phase": "landing",
+    "description": "Settings page: profile editing, plan display, credit history, and danger zone (delete account)",
+    "acceptance": "Settings page (/dashboard/settings) with tabs: Profile (name, email — read only from auth), Plan (current plan, upgrade/manage subscription button, next billing date), Credits (transaction history table with date, type, amount, balance), Account (delete account with confirmation dialog). Plan section links to Stripe Customer Portal for subscription management.",
+    "priority": 17,
+    "passes": false
+  },
+  {
+    "id": "story-018",
+    "phase": "polish",
+    "description": "Error handling: global error boundary, test failure states, network errors, loading states",
+    "acceptance": "App has a global error boundary that catches unhandled errors and shows a friendly error page. All async operations show loading spinners/skeletons. Failed tests show clear error messages with retry option. Network disconnection shows a banner. Convex connection loss shows reconnecting state. Toast notifications for success/error actions (test created, test failed, credits purchased, etc.).",
+    "priority": 18,
+    "passes": false
+  },
+  {
+    "id": "story-019",
+    "phase": "polish",
+    "description": "Shareable test reports: public URL for any test result that can be shared without auth",
+    "acceptance": "Each test has a 'Share' button that generates a public URL (/report/[shareId]). Public report page shows: test results, redirect chain, cookies, screenshots, network detected — same as authenticated view but read-only and no sidebar. Share link uses a random ID (not test ID). Report page has LinkPath branding and CTA to sign up. Share can be toggled off (revokes public access).",
+    "priority": 19,
+    "passes": false
+  },
+  {
+    "id": "story-020",
+    "phase": "polish",
+    "description": "Onboarding flow: post-signup role selection + first test with pre-populated example link",
+    "acceptance": "After first signup, user sees a 3-step onboarding: 1) Role selection (Publisher, Creator, Agency/Network, Skip), 2) First test with pre-populated Awin Nike example link and 'Run Your First Check' CTA, 3) Dashboard with getting started checklist (run first test, test a top link, set up monitoring [coming soon]). Role is stored in profile. If user arrived with ?url= param, that URL is pre-populated instead of the example. Onboarding is skippable. Only shows once (tracked in profile).",
+    "priority": 20,
+    "passes": false
+  }
+]

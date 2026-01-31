@@ -1,0 +1,4 @@
+# LinkPath Build Progress
+# This file is append-only. Each iteration adds notes below.
+# ============================================================
+
