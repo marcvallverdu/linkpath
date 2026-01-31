@@ -41,3 +41,13 @@
 [2026-01-31] Story-006 added test creation mutation + dashboard form with URL validation, test type selector, credit-aware submit state, and queued test creation.
 
 [2026-01-31] Story-007 added affiliate network detection utility + Vitest coverage with 3+ URL cases per network and unknown fallback.
+
+[2026-01-31] Story-008 implemented Playwright browser worker HTTP server.
+- worker/server.ts: Express server with POST /run and GET /health
+- Redirect chain capture via Playwright request.redirectedFrom() traversal
+- Cookie extraction, full-page screenshot (base64 PNG)
+- Network detection (awin, cj, rakuten, impact, shareasale, amazon)
+- Parameter preservation check between first and last URL
+- 60s timeout per test, proper browser cleanup
+- worker/Dockerfile for production (playwright:v1.48.0-jammy)
+- worker/package.json + tsconfig.json (standalone service)
