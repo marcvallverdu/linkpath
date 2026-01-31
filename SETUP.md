@@ -159,6 +159,68 @@ Open [http://localhost:3000](http://localhost:3000) 🎉
 
 ---
 
+## Production Deployment
+
+### Next.js → Vercel
+
+```bash
+npm i -g vercel
+vercel
+```
+
+Add environment variables in Vercel Dashboard → Settings → Environment Variables:
+- `NEXT_PUBLIC_CONVEX_URL`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `CLERK_SECRET_KEY`
+- All the `NEXT_PUBLIC_CLERK_*` URLs
+
+### Convex → Convex Cloud
+
+```bash
+npx convex deploy
+```
+
+This deploys to production. Set all Convex env vars for prod:
+```bash
+npx convex env set CLERK_ISSUER_URL https://...
+npx convex env set BROWSER_WORKER_URL https://linkpath-worker.fly.dev
+npx convex env set STRIPE_SECRET_KEY sk_live_...
+# ... etc
+```
+
+### Browser Worker → Fly.io (Recommended)
+
+Vercel can't run Playwright (binary too large, timeouts too short). Fly.io is the easiest option — your Dockerfile already works.
+
+```bash
+cd worker
+brew install flyctl        # or curl -L https://fly.io/install.sh | sh
+fly auth login
+fly launch --name linkpath-worker --region lhr   # London region
+fly deploy
+```
+
+That's it. Your worker is live at `https://linkpath-worker.fly.dev`.
+
+Update Convex:
+```bash
+npx convex env set BROWSER_WORKER_URL https://linkpath-worker.fly.dev
+```
+
+**Fly.io pricing:** Free tier covers light usage. ~$5-10/mo for real use. Scales to zero when idle.
+
+#### Other Worker Hosting Options
+
+| Option | Pros | Cons | Cost |
+|--------|------|------|------|
+| **Fly.io** ⭐ | Easiest, Docker native, scales to zero | Cold starts ~2s | Free tier, then ~$5/mo |
+| **Railway** | GitHub auto-deploy, zero config | No free tier | $5/mo minimum |
+| **Render** | Free tier available | Cold starts ~30s on free | Free / $7/mo |
+| **Browserless.io** | Managed Playwright, zero infra | Less control, API changes needed | $0.01/session |
+| **Modal.com** | Serverless, pay-per-second | Overkill for MVP | Usage-based |
+
+---
+
 ## Architecture
 
 ```
