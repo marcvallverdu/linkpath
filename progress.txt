@@ -51,3 +51,28 @@
 - 60s timeout per test, proper browser cleanup
 - worker/Dockerfile for production (playwright:v1.48.0-jammy)
 - worker/package.json + tsconfig.json (standalone service)
+
+[2026-01-31] Story-009 implemented Convex test execution pipeline.
+- convex/testPipeline.ts: internalAction executeTest, internalMutations for status/refund/screenshot
+- tests:create now deducts credits and schedules executeTest via ctx.scheduler.runAfter(0)
+- Screenshot stored in Convex file storage, screenshot record created
+- On failure: status set to "failed", credits refunded, error message saved
+- Added tests:get, tests:listByOrg, tests:getScreenshots queries
+
+[2026-01-31] Story-010 implemented test detail results view.
+- app/dashboard/tests/[id]/page.tsx with real-time updates (useQuery)
+- Status badge (animated pulse for running), network, timing, credits
+- Redirect chain as visual flow (status code circles + URLs)
+- Cookie table with HttpOnly/Secure/SameSite flags
+- Parameter preservation check (green/red indicator)
+- Expandable screenshot viewer
+- "Run Again" button creates new test and navigates to it
+- Loading skeleton and not-found states
+
+[2026-01-31] Story-011 implemented test history list.
+- app/dashboard/tests/page.tsx with real-time table
+- Columns: URL (truncated), network, type, status badge, date, credits
+- Status filter pills (All/Queued/Running/Success/Failed)
+- Clickable rows navigate to test detail
+- Empty state with CTA to run first test
+- Loading skeleton states

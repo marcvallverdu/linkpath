@@ -69,7 +69,7 @@
     "description": "Test execution pipeline: Convex action that calls browser worker, stores results, updates test status in real-time",
     "acceptance": "When a test is created with status 'queued', a Convex scheduled action fires immediately. The action: deducts credits from org balance, updates test status to 'running', calls the browser worker HTTP endpoint, stores the result in test.report (JSONB), uploads screenshot to Convex file storage, creates screenshot record, updates test status to 'success' or 'failed'. If worker fails, credits are refunded and status set to 'failed' with error_message. Test status updates are visible in real-time on the dashboard via Convex useQuery.",
     "priority": 9,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-010",
@@ -77,7 +77,7 @@
     "description": "Quick Link Check results view: show redirect chain, network detected, cookies, parameter preservation, screenshot",
     "acceptance": "Test detail page (/dashboard/tests/[id]) shows: status badge (queued/running/success/failed), detected affiliate network with logo/icon, full redirect chain as a visual flow (URL \u2192 URL \u2192 URL with status codes), list of cookies set (name, domain, value preview, httpOnly, secure, sameSite), parameter preservation check (were affiliate params maintained through redirects?), landing page screenshot (expandable), test timing, and a 'Run Again' button. Page updates in real-time while test is running.",
     "priority": 10,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-011",
@@ -85,7 +85,7 @@
     "description": "CMP Consent Test: detect cookie banner, simulate accept/reject, compare tracking cookies before and after consent",
     "acceptance": "CMP test extends Quick Link Check by: detecting common CMP providers (OneTrust, CookieBot, TrustArc, Quantcast, Didomi, custom) via DOM inspection, capturing cookies BEFORE consent interaction, simulating 'Accept All' consent click, capturing cookies AFTER consent interaction, comparing before/after cookie state, highlighting affiliate-relevant cookies that appeared/disappeared. Results show: CMP provider detected, consent action taken, cookie diff table (before vs after), verdict (tracking survives consent: pass/fail). Falls back to basic Quick Link Check if no CMP detected.",
     "priority": 11,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-012",
