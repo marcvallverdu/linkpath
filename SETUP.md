@@ -15,19 +15,21 @@ No Node? → `brew install node` (macOS) or [nodejs.org](https://nodejs.org)
 
 ---
 
-## Step 1: Clone and install (1 min)
+## Step 1: Clone and install (2 min)
 
 ```bash
 git clone https://github.com/marcvallverdu/linkpath.git
 cd linkpath
-npm install
+npm run setup    # installs everything: app + worker + Chromium browser
 ```
+
+This runs `npm install` for both the app and worker, and downloads the Chromium binary for Playwright.
 
 ---
 
 ## Step 2: Convex — your backend (3 min)
 
-**Open Terminal 1:**
+Run this once to create your Convex project:
 
 ```bash
 npx convex dev
@@ -39,7 +41,7 @@ When it finishes, it auto-creates `.env.local` with two values:
 - `CONVEX_DEPLOYMENT`
 - `NEXT_PUBLIC_CONVEX_URL`
 
-**Leave this terminal running** — it hot-deploys your backend on every save.
+Hit `Ctrl+C` once you see "Convex functions ready!" — we'll start everything together in step 5.
 
 ---
 
@@ -87,42 +89,39 @@ Replace with your actual issuer URL from step 3c.
 
 ---
 
-## Step 4: Browser Worker — Playwright testing engine (2 min)
+## Step 4: Browser Worker config (1 min)
 
-**Open Terminal 2:**
-
-```bash
-cd worker
-npm install
-npx playwright install chromium   # Downloads ~90MB browser binary
-npm run dev
-```
-
-You should see: `Worker listening on port 8080`
-
-Now tell Convex where the worker is and set a shared secret:
+The worker was already installed by `npm run setup` in step 1. Just configure the env vars:
 
 ```bash
 npx convex env set BROWSER_WORKER_URL "http://localhost:8080"
-npx convex env set WORKER_SECRET "pick-any-random-string-here"
+npx convex env set WORKER_SECRET "change-me-to-something-random"
 ```
 
-Also set the same secret for the worker (create `worker/.env`):
-```env
-WORKER_SECRET=pick-any-random-string-here
+Create `worker/.env` with the same secret:
+```bash
+cp worker/.env.example worker/.env
 ```
+Then edit `worker/.env` and set `WORKER_SECRET` to the same value you used above.
 
 ---
 
-## Step 5: Start the app (30 sec)
+## Step 5: Start everything (30 sec)
 
-**Open Terminal 3:**
+One command, one terminal:
 
 ```bash
 npm run dev
 ```
 
+This starts **all three services** in parallel with color-coded output:
+- 🔵 **next** — Next.js on `localhost:3000`
+- 🟣 **convex** — Convex dev server (hot-deploys functions)
+- 🟡 **worker** — Playwright worker on `localhost:8080`
+
 Open **[http://localhost:3000](http://localhost:3000)** 🎉
+
+> **Tip:** You can also run them separately if you prefer: `npm run dev:next`, `npm run dev:convex`, `npm run dev:worker`
 
 ### What you should see:
 
