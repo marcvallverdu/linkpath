@@ -7,3 +7,11 @@
 - npm install timed out due to registry/network; typecheck failed because tsc not installed.
 
 [2026-01-31] Story-002 implemented full Convex schema with auth tables, MVP entities, indexes, and featureFlags.
+
+[2026-01-31] Story-003 implemented Convex Auth (manually, not by Codex — it got stuck researching).
+- Created convex/auth.ts with Google + Password providers
+- Created convex/http.ts with auth HTTP routes
+- Created middleware.ts with route protection (dashboard protected, login/signup redirect if authed)
+- Updated providers.tsx to use ConvexAuthNextjsProvider
+- Created login + signup pages with Google OAuth + email/password forms
+- Types pass clean
