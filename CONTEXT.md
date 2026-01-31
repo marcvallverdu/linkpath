@@ -18,7 +18,7 @@ AI-powered affiliate link tracking QA platform. Publishers paste affiliate links
 | Frontend | Next.js 15 (App Router) | Server Components by default |
 | Styling | Tailwind CSS v4 + shadcn/ui | Use `npx shadcn@latest add <component>` |
 | Backend | Convex | DB, auth, real-time, background jobs, file storage |
-| Auth | Better Auth (@convex-dev/better-auth) | Google OAuth + email/password |
+| Auth | Clerk (@clerk/nextjs) + convex/react-clerk | Google OAuth + email/password |
 | Browser Worker | Playwright + Node.js HTTP server | Separate /worker directory |
 | Payments | Stripe | Subscriptions + webhooks |
 | Error Tracking | Sentry (add later) | Not needed for MVP stories |
@@ -226,48 +226,48 @@ export default defineSchema({
 
 ---
 
-## Auth (Better Auth) — Already Set Up
+## Auth (Clerk) — Already Set Up
 
-Auth uses `@convex-dev/better-auth`. All files are in place:
+Auth uses Clerk (`@clerk/nextjs`) integrated with Convex via `convex/react-clerk`.
 
-**Backend:**
-- `convex/app.config.ts` — registers Better Auth component
-- `convex/auth.ts` — createAuth with Google + email/password, exports `authComponent` and `getCurrentUser` query
-- `convex/http.ts` — registers auth HTTP routes
+**Files in place:**
+- `app/providers.tsx` — ClerkProvider + ConvexProviderWithClerk
+- `middleware.ts` — Clerk middleware protecting /dashboard routes
+- `app/(auth)/login/[[...login]]/page.tsx` — Clerk SignIn component
+- `app/(auth)/signup/[[...signup]]/page.tsx` — Clerk SignUp component
 
-**Frontend:**
-- `lib/auth-client.ts` — Better Auth React client with convexClient plugin
-- `lib/auth-server.ts` — Next.js server utilities (handler, isAuthenticated, getToken, fetchAuthQuery, etc.)
-- `app/providers.tsx` — ConvexBetterAuthProvider wrapping the app
-- `app/api/auth/[...all]/route.ts` — Next.js route handler proxying auth to Convex
-- `app/(auth)/login/page.tsx` and `signup/page.tsx` — auth UI pages
-
-**How to use in components:**
+**How to use in React components:**
 ```typescript
-// Get auth state in React
-import { authClient } from "@/lib/auth-client";
-const { data: session } = authClient.useSession();
-// session?.user has { id, name, email, image }
+// Get auth state
+import { useUser, useAuth } from "@clerk/nextjs";
+const { user, isLoaded } = useUser();  // user.id, user.fullName, user.emailAddresses, user.imageUrl
+const { isSignedIn } = useAuth();
 
 // Sign out
-await authClient.signOut();
+import { useClerk } from "@clerk/nextjs";
+const { signOut } = useClerk();
+await signOut();
 
-// Get authenticated user in Convex functions
-import { authComponent } from "./auth";
-const user = await authComponent.getAuthUser(ctx);
-// Returns { _id, email, name, ... } or null
+// UserButton component (avatar + dropdown with sign out)
+import { UserButton } from "@clerk/nextjs";
+<UserButton afterSignOutUrl="/" />
+```
 
-// Use the getCurrentUser query from React
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-const user = useQuery(api.auth.getCurrentUser);
+**How to use in Convex functions:**
+```typescript
+// Get the authenticated user's identity
+const identity = await ctx.auth.getUserIdentity();
+// identity.subject = Clerk user ID
+// identity.email, identity.name, identity.pictureUrl, etc.
+
+// If not authenticated, identity is null
+if (!identity) throw new Error("Not authenticated");
 ```
 
 **Environment variables needed:**
 - `NEXT_PUBLIC_CONVEX_URL` — Convex deployment URL
-- `NEXT_PUBLIC_CONVEX_SITE_URL` — Convex site URL (for auth callbacks)
-- `SITE_URL` — Your app URL (Convex env var)
-- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (Convex env vars)
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk publishable key
+- `CLERK_SECRET_KEY` — Clerk secret key (server-side)
 
 ---
 

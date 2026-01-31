@@ -25,3 +25,11 @@
 - Login + signup pages use authClient.signIn/signUp
 - Removed old middleware.ts (Better Auth handles differently)
 - Note: convex/_generated/ types don't exist yet (need `npx convex dev`), so tsc will show errors for convex/ files. This is expected.
+
+[2026-01-31] Story-003 REDONE AGAIN: Swapped to Clerk (@clerk/nextjs).
+- Much simpler: ClerkProvider + ConvexProviderWithClerk in providers.tsx
+- Clerk middleware.ts protects /dashboard routes
+- SignIn/SignUp use Clerk's prebuilt components
+- No custom auth backend needed — Clerk handles everything
+- Convex functions use ctx.auth.getUserIdentity() to get Clerk user
+- profiles.userId stores identity.subject (Clerk user ID)
