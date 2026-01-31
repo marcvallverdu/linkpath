@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.env.local
+.env
+.convex/
+dist/
+worker/node_modules/
+worker/dist/
+*.tsbuildinfo
