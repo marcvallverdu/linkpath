@@ -15,3 +15,13 @@
 - Updated providers.tsx to use ConvexAuthNextjsProvider
 - Created login + signup pages with Google OAuth + email/password forms
 - Types pass clean
+
+[2026-01-31] Story-003 REDONE: Swapped from Convex Auth to Better Auth (@convex-dev/better-auth).
+- convex/app.config.ts registers Better Auth component
+- convex/auth.ts uses betterAuth() with Google + email/password
+- convex/http.ts registers auth routes
+- lib/auth-client.ts and lib/auth-server.ts for React/Next.js
+- app/api/auth/[...all]/route.ts proxies auth to Convex
+- Login + signup pages use authClient.signIn/signUp
+- Removed old middleware.ts (Better Auth handles differently)
+- Note: convex/_generated/ types don't exist yet (need `npx convex dev`), so tsc will show errors for convex/ files. This is expected.

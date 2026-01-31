@@ -18,7 +18,7 @@ AI-powered affiliate link tracking QA platform. Publishers paste affiliate links
 | Frontend | Next.js 15 (App Router) | Server Components by default |
 | Styling | Tailwind CSS v4 + shadcn/ui | Use `npx shadcn@latest add <component>` |
 | Backend | Convex | DB, auth, real-time, background jobs, file storage |
-| Auth | Convex Auth | Google OAuth + email/password |
+| Auth | Better Auth (@convex-dev/better-auth) | Google OAuth + email/password |
 | Browser Worker | Playwright + Node.js HTTP server | Separate /worker directory |
 | Payments | Stripe | Subscriptions + webhooks |
 | Error Tracking | Sentry (add later) | Not needed for MVP stories |
@@ -113,10 +113,10 @@ linkpath/
 // convex/schema.ts
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { authTables } from '@convex-dev/auth/server';
+
+// Auth tables are managed by @convex-dev/better-auth component (separate from app schema)
 
 export default defineSchema({
-  ...authTables,
 
   profiles: defineTable({
     userId: v.string(),              // From Convex Auth
@@ -223,6 +223,51 @@ export default defineSchema({
     .index('by_profile', ['profileId', 'createdAt']),
 });
 ```
+
+---
+
+## Auth (Better Auth) — Already Set Up
+
+Auth uses `@convex-dev/better-auth`. All files are in place:
+
+**Backend:**
+- `convex/app.config.ts` — registers Better Auth component
+- `convex/auth.ts` — createAuth with Google + email/password, exports `authComponent` and `getCurrentUser` query
+- `convex/http.ts` — registers auth HTTP routes
+
+**Frontend:**
+- `lib/auth-client.ts` — Better Auth React client with convexClient plugin
+- `lib/auth-server.ts` — Next.js server utilities (handler, isAuthenticated, getToken, fetchAuthQuery, etc.)
+- `app/providers.tsx` — ConvexBetterAuthProvider wrapping the app
+- `app/api/auth/[...all]/route.ts` — Next.js route handler proxying auth to Convex
+- `app/(auth)/login/page.tsx` and `signup/page.tsx` — auth UI pages
+
+**How to use in components:**
+```typescript
+// Get auth state in React
+import { authClient } from "@/lib/auth-client";
+const { data: session } = authClient.useSession();
+// session?.user has { id, name, email, image }
+
+// Sign out
+await authClient.signOut();
+
+// Get authenticated user in Convex functions
+import { authComponent } from "./auth";
+const user = await authComponent.getAuthUser(ctx);
+// Returns { _id, email, name, ... } or null
+
+// Use the getCurrentUser query from React
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+const user = useQuery(api.auth.getCurrentUser);
+```
+
+**Environment variables needed:**
+- `NEXT_PUBLIC_CONVEX_URL` — Convex deployment URL
+- `NEXT_PUBLIC_CONVEX_SITE_URL` — Convex site URL (for auth callbacks)
+- `SITE_URL` — Your app URL (Convex env var)
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth (Convex env vars)
 
 ---
 
