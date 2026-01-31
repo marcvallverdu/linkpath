@@ -6,6 +6,7 @@ import { api } from "../../../../convex/_generated/api";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const STATUS_STYLES: Record<string, { label: string; class: string }> = {
   queued: { label: "Queued", class: "bg-gray-500/20 text-gray-400" },
@@ -117,6 +118,7 @@ export default function TestDetailPage() {
     try {
       if (test.shareEnabled) {
         await disableShare({ testId });
+        toast.success("Sharing disabled");
       } else {
         const result = await enableShare({ testId });
         if (result.shareId) {
@@ -124,10 +126,11 @@ export default function TestDetailPage() {
           await navigator.clipboard.writeText(url);
           setShareCopied(true);
           setTimeout(() => setShareCopied(false), 2000);
+          toast.success("Link copied to clipboard");
         }
       }
     } catch (e) {
-      console.error("Share toggle failed:", e);
+      toast.error("Failed to update sharing");
     } finally {
       setShareLoading(false);
     }
@@ -171,9 +174,10 @@ export default function TestDetailPage() {
   const handleRunAgain = async () => {
     try {
       const result = await createTest({ url: test.url, testType: test.testType });
+      toast.success("Test created");
       router.push(`/dashboard/tests/${result.testId}`);
     } catch (e) {
-      console.error("Failed to re-run test:", e);
+      toast.error(e instanceof Error ? e.message : "Failed to create test");
     }
   };
 

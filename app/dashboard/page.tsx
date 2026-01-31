@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "../../convex/_generated/api";
 import { cn } from "@/lib/utils";
 import { CheckCircle, XCircle, Clock, Zap } from "lucide-react";
+import { toast } from "sonner";
 
 const TEST_OPTIONS = [
   {
@@ -97,9 +98,12 @@ export default function DashboardPage() {
     try {
       const result = await createTest({ url, testType });
       setUrl("");
+      toast.success("Test started");
       router.push(`/dashboard/tests/${result.testId}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create the test.");
+      const msg = err instanceof Error ? err.message : "Unable to create the test.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }

@@ -6,6 +6,7 @@ import { api } from "../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useUser, useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const TX_TYPE_LABELS: Record<string, string> = {
   welcome_bonus: "Welcome Bonus",
@@ -38,6 +39,8 @@ export default function SettingsPage() {
   const [nameLoaded, setNameLoaded] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteText, setDeleteText] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Initialize name from profile
   if (context?.profile?.name && !nameLoaded) {
@@ -49,39 +52,48 @@ export default function SettingsPage() {
   const org = context?.organization;
 
   const handleSaveName = async () => {
+    setSavingName(true);
     try {
       await updateProfile({ name });
+      toast.success("Profile updated");
     } catch (e) {
-      console.error("Failed to update name:", e);
+      toast.error("Failed to save name");
+    } finally {
+      setSavingName(false);
     }
   };
 
   const handleUpgrade = async () => {
     try {
+      toast.info("Redirecting to checkout...");
       const result = await createCheckout();
       if (result.url) window.location.href = result.url;
     } catch (e) {
-      console.error("Failed to create checkout:", e);
+      toast.error("Failed to start checkout");
     }
   };
 
   const handleBuyCredits = async (packSize: "small" | "medium" | "large") => {
     try {
+      toast.info("Redirecting to checkout...");
       const result = await createCreditPack({ packSize });
       if (result.url) window.location.href = result.url;
     } catch (e) {
-      console.error("Failed to create checkout:", e);
+      toast.error("Failed to start checkout");
     }
   };
 
   const handleDeleteAccount = async () => {
     if (deleteText !== "DELETE") return;
+    setDeleting(true);
     try {
       await deleteAccount();
+      toast.success("Account deleted");
       await signOut();
       router.push("/");
     } catch (e) {
-      console.error("Failed to delete account:", e);
+      toast.error("Failed to delete account");
+      setDeleting(false);
     }
   };
 
@@ -103,9 +115,10 @@ export default function SettingsPage() {
               />
               <button
                 onClick={handleSaveName}
-                className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-300"
+                disabled={savingName}
+                className="rounded-lg bg-emerald-400 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-300 disabled:opacity-50"
               >
-                Save
+                {savingName ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
@@ -215,15 +228,15 @@ export default function SettingsPage() {
             <div className="flex gap-2">
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteText !== "DELETE"}
+                disabled={deleteText !== "DELETE" || deleting}
                 className={cn(
                   "rounded-lg px-4 py-2 text-sm font-medium",
-                  deleteText === "DELETE"
+                  deleteText === "DELETE" && !deleting
                     ? "bg-red-600 text-white hover:bg-red-500"
                     : "cursor-not-allowed bg-slate-800 text-slate-500"
                 )}
               >
-                Confirm Delete
+                {deleting ? "Deleting..." : "Confirm Delete"}
               </button>
               <button
                 onClick={() => { setShowDeleteConfirm(false); setDeleteText(""); }}
