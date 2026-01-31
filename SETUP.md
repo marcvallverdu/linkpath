@@ -1,16 +1,21 @@
 # LinkPath — Setup Guide
 
-## Prerequisites
-
-- Node.js 20+
-- npm
-- A [Convex](https://convex.dev) account
-- A [Clerk](https://clerk.com) account
-- A [Stripe](https://stripe.com) account (for payments, optional for dev)
+Get LinkPath running locally in ~10 minutes. You need 3 accounts (Convex, Clerk, Stripe) and 3 terminals.
 
 ---
 
-## 1. Clone & Install
+## Step 0: Prerequisites
+
+```bash
+node --version   # Need 20+
+npm --version    # Comes with Node
+```
+
+No Node? → `brew install node` (macOS) or [nodejs.org](https://nodejs.org)
+
+---
+
+## Step 1: Clone and install (1 min)
 
 ```bash
 git clone https://github.com/marcvallverdu/linkpath.git
@@ -18,206 +23,260 @@ cd linkpath
 npm install
 ```
 
-## 2. Convex Setup
+---
+
+## Step 2: Convex — your backend (3 min)
+
+**Open Terminal 1:**
 
 ```bash
 npx convex dev
 ```
 
-This will:
-- Prompt you to log in / create a Convex project
-- Deploy the schema and functions
-- Create a `.env.local` with `CONVEX_DEPLOYMENT` and `NEXT_PUBLIC_CONVEX_URL`
+First time? It'll open a browser to create your free Convex account and project. Follow the prompts.
 
-Leave `convex dev` running in a terminal — it hot-reloads.
+When it finishes, it auto-creates `.env.local` with two values:
+- `CONVEX_DEPLOYMENT`
+- `NEXT_PUBLIC_CONVEX_URL`
 
-## 3. Clerk Setup
+**Leave this terminal running** — it hot-deploys your backend on every save.
 
-1. Go to [clerk.com](https://clerk.com) → Create application
-2. Enable **Google OAuth** and **Email/Password** sign-in methods
-3. Copy your keys and add to `.env.local`:
+---
+
+## Step 3: Clerk — authentication (3 min)
+
+### 3a. Create your Clerk app
+
+1. Go to [clerk.com](https://clerk.com) → **Create application**
+2. Name it "LinkPath" (or whatever)
+3. Under **Sign-in options**, enable:
+   - ✅ Google
+   - ✅ Email address
+4. Click **Create**
+
+### 3b. Copy your keys
+
+From Clerk Dashboard → **API Keys**, copy both values. Add them to your `.env.local`:
 
 ```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
+# Add these lines to the .env.local that Convex already created:
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxx
+CLERK_SECRET_KEY=sk_test_xxxxxxxxxxxxx
 NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
 NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard/onboarding
 ```
 
-4. In Clerk Dashboard → JWT Templates → Create a Convex template:
-   - Name: `convex`
-   - Issuer: your Clerk issuer URL (from API Keys page)
+### 3c. Create a JWT template for Convex
 
-5. Add the Clerk issuer to Convex environment variables:
-   ```bash
-   npx convex env set CLERK_ISSUER_URL https://your-clerk-instance.clerk.accounts.dev
-   ```
+1. Clerk Dashboard → **JWT Templates** (left sidebar)
+2. Click **New template** → choose **Convex**
+3. It auto-fills everything. Just click **Save**.
+4. Note the **Issuer URL** shown at the top (looks like `https://xxxx.clerk.accounts.dev`)
 
-## 4. Browser Worker Setup
+### 3d. Tell Convex about Clerk
 
-The Playwright worker runs as a separate service:
+In a new terminal (keep `convex dev` running):
+
+```bash
+npx convex env set CLERK_ISSUER_URL "https://xxxx.clerk.accounts.dev"
+```
+
+Replace with your actual issuer URL from step 3c.
+
+---
+
+## Step 4: Browser Worker — Playwright testing engine (2 min)
+
+**Open Terminal 2:**
 
 ```bash
 cd worker
 npm install
-npx playwright install chromium
-npm run dev   # starts on port 8080
+npx playwright install chromium   # Downloads ~90MB browser binary
+npm run dev
 ```
 
-Then tell Convex where to find it:
-```bash
-npx convex env set BROWSER_WORKER_URL http://localhost:8080
-```
+You should see: `Worker listening on port 8080`
 
-### Docker (Production)
+Now tell Convex where the worker is:
 
 ```bash
-cd worker
-docker build -t linkpath-worker .
-docker run -p 8080:8080 linkpath-worker
+npx convex env set BROWSER_WORKER_URL "http://localhost:8080"
 ```
 
-## 5. Stripe Setup (Optional)
+---
 
-For payments to work:
+## Step 5: Start the app (30 sec)
 
-1. Create products in Stripe Dashboard:
-   - **Pro Plan**: $49/mo subscription → copy Price ID
-   - **Credit Pack Small**: $9 one-time → copy Price ID
-   - **Credit Pack Medium**: $29 one-time → copy Price ID
-   - **Credit Pack Large**: $59 one-time → copy Price ID
+**Open Terminal 3:**
 
-2. Add to Convex env vars:
-   ```bash
-   npx convex env set STRIPE_SECRET_KEY sk_test_...
-   npx convex env set STRIPE_PRO_PRICE_ID price_...
-   npx convex env set STRIPE_PACK_SMALL_PRICE_ID price_...
-   npx convex env set STRIPE_PACK_MEDIUM_PRICE_ID price_...
-   npx convex env set STRIPE_PACK_LARGE_PRICE_ID price_...
-   ```
-
-3. Set up a webhook in Stripe → Developers → Webhooks:
-   - URL: `https://your-convex-deployment.convex.site/stripe-webhook`
-   - Events: `checkout.session.completed`
-   - Copy the webhook secret:
-   ```bash
-   npx convex env set STRIPE_WEBHOOK_SECRET whsec_...
-   ```
-
-4. Add the app URL for redirects:
-   ```bash
-   npx convex env set NEXT_PUBLIC_APP_URL http://localhost:3000
-   ```
-
-## 6. Run the App
-
-Terminal 1 — Convex:
-```bash
-npx convex dev
-```
-
-Terminal 2 — Worker:
-```bash
-cd worker && npm run dev
-```
-
-Terminal 3 — Next.js:
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) 🎉
+Open **[http://localhost:3000](http://localhost:3000)** 🎉
+
+### What you should see:
+
+1. **Landing page** → click "Get Started Free"
+2. **Clerk sign-up** (dark themed) → sign up with Google or email
+3. **Onboarding** → pick your role, paste a test link
+4. **Dashboard** → your test runs in real-time, results appear with redirect chain, cookies, screenshots
+
+### Quick test to verify everything works:
+
+1. Sign up
+2. Paste any affiliate link (e.g. an Amazon associates link)
+3. Click "Run Quick Check"
+4. Watch the test go from Queued → Running → Success
+5. See the redirect chain, detected network, cookies, and screenshot
 
 ---
 
-## Environment Variables Summary
+## Step 6: Stripe — payments (optional, skip for dev)
 
-### `.env.local` (Next.js — auto-created by Convex)
+Only needed if you want to test the upgrade/credit purchase flow.
 
-| Variable | Source |
-|----------|--------|
-| `CONVEX_DEPLOYMENT` | `npx convex dev` |
-| `NEXT_PUBLIC_CONVEX_URL` | `npx convex dev` |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk Dashboard |
-| `CLERK_SECRET_KEY` | Clerk Dashboard |
+### 6a. Create Stripe products
 
-### Convex Environment Variables (`npx convex env set`)
+Go to [dashboard.stripe.com](https://dashboard.stripe.com) → **Product catalog** → create 4 products:
 
-| Variable | Source |
-|----------|--------|
-| `CLERK_ISSUER_URL` | Clerk Dashboard → API Keys |
-| `BROWSER_WORKER_URL` | Your worker URL |
-| `STRIPE_SECRET_KEY` | Stripe Dashboard |
-| `STRIPE_WEBHOOK_SECRET` | Stripe Webhooks |
-| `STRIPE_PRO_PRICE_ID` | Stripe Products |
-| `STRIPE_PACK_SMALL_PRICE_ID` | Stripe Products |
-| `STRIPE_PACK_MEDIUM_PRICE_ID` | Stripe Products |
-| `STRIPE_PACK_LARGE_PRICE_ID` | Stripe Products |
-| `NEXT_PUBLIC_APP_URL` | Your app domain |
+| Product | Type | Price | You need |
+|---------|------|-------|----------|
+| Pro Plan | Recurring, $49/mo | `price_xxx` | Price ID |
+| 50 Credit Pack | One-time, $9 | `price_xxx` | Price ID |
+| 200 Credit Pack | One-time, $29 | `price_xxx` | Price ID |
+| 500 Credit Pack | One-time, $59 | `price_xxx` | Price ID |
 
----
-
-## Production Deployment
-
-### Next.js → Vercel
+### 6b. Set the env vars
 
 ```bash
-npm i -g vercel
-vercel
+npx convex env set STRIPE_SECRET_KEY "sk_test_xxxxx"
+npx convex env set STRIPE_PRO_PRICE_ID "price_xxxxx"
+npx convex env set STRIPE_PACK_SMALL_PRICE_ID "price_xxxxx"
+npx convex env set STRIPE_PACK_MEDIUM_PRICE_ID "price_xxxxx"
+npx convex env set STRIPE_PACK_LARGE_PRICE_ID "price_xxxxx"
+npx convex env set NEXT_PUBLIC_APP_URL "http://localhost:3000"
 ```
 
-Add environment variables in Vercel Dashboard → Settings → Environment Variables:
-- `NEXT_PUBLIC_CONVEX_URL`
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- `CLERK_SECRET_KEY`
-- All the `NEXT_PUBLIC_CLERK_*` URLs
+### 6c. Set up the webhook
 
-### Convex → Convex Cloud
+1. Stripe Dashboard → **Developers** → **Webhooks** → **Add endpoint**
+2. URL: your Convex HTTP endpoint (find it in Convex dashboard under "HTTP Actions"):
+   ```
+   https://your-deployment.convex.site/stripe-webhook
+   ```
+3. Events to listen for: `checkout.session.completed`
+4. Copy the **signing secret** (starts with `whsec_`):
+
+```bash
+npx convex env set STRIPE_WEBHOOK_SECRET "whsec_xxxxx"
+```
+
+For local testing, use [Stripe CLI](https://stripe.com/docs/stripe-cli):
+```bash
+stripe listen --forward-to https://your-deployment.convex.site/stripe-webhook
+```
+
+---
+
+## Your `.env.local` should look like this
+
+```env
+# Auto-generated by Convex
+CONVEX_DEPLOYMENT=dev:your-project-123
+NEXT_PUBLIC_CONVEX_URL=https://your-project-123.convex.cloud
+
+# Clerk (from step 3)
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_xxxxx
+CLERK_SECRET_KEY=sk_test_xxxxx
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/login
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/signup
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard/onboarding
+```
+
+That's it for local. Stripe env vars go into Convex (not `.env.local`).
+
+---
+
+## Deploy to production
+
+### 1. Frontend → Vercel (2 min)
+
+```bash
+npx vercel
+```
+
+Follow the prompts. Then add env vars in Vercel Dashboard → Settings → Environment Variables:
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_CONVEX_URL` | Your Convex production URL |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Your Clerk **production** key |
+| `CLERK_SECRET_KEY` | Your Clerk **production** secret |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/login` |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/signup` |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL` | `/dashboard` |
+| `NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL` | `/dashboard/onboarding` |
+
+### 2. Backend → Convex Cloud (1 min)
 
 ```bash
 npx convex deploy
 ```
 
-This deploys to production. Set all Convex env vars for prod:
+Then set all production env vars:
+
 ```bash
-npx convex env set CLERK_ISSUER_URL https://...
-npx convex env set BROWSER_WORKER_URL https://linkpath-worker.fly.dev
-npx convex env set STRIPE_SECRET_KEY sk_live_...
-# ... etc
+npx convex env set CLERK_ISSUER_URL "https://your-prod-clerk.clerk.accounts.dev"
+npx convex env set BROWSER_WORKER_URL "https://linkpath-worker.fly.dev"
+npx convex env set STRIPE_SECRET_KEY "sk_live_xxxxx"
+npx convex env set STRIPE_WEBHOOK_SECRET "whsec_xxxxx"
+npx convex env set STRIPE_PRO_PRICE_ID "price_xxxxx"
+npx convex env set STRIPE_PACK_SMALL_PRICE_ID "price_xxxxx"
+npx convex env set STRIPE_PACK_MEDIUM_PRICE_ID "price_xxxxx"
+npx convex env set STRIPE_PACK_LARGE_PRICE_ID "price_xxxxx"
+npx convex env set NEXT_PUBLIC_APP_URL "https://your-domain.com"
 ```
 
-### Browser Worker → Fly.io (Recommended)
+### 3. Worker → Fly.io (3 min)
 
-Vercel can't run Playwright (binary too large, timeouts too short). Fly.io is the easiest option — your Dockerfile already works.
+Vercel can't run Playwright. Fly.io is the easiest:
 
 ```bash
 cd worker
-brew install flyctl        # or curl -L https://fly.io/install.sh | sh
+brew install flyctl                              # or: curl -L https://fly.io/install.sh | sh
 fly auth login
-fly launch --name linkpath-worker --region lhr   # London region
+fly launch --name linkpath-worker --region lhr   # London region, say yes to defaults
 fly deploy
 ```
 
-That's it. Your worker is live at `https://linkpath-worker.fly.dev`.
+Your worker is live at `https://linkpath-worker.fly.dev`. Verify:
 
-Update Convex:
 ```bash
-npx convex env set BROWSER_WORKER_URL https://linkpath-worker.fly.dev
+curl https://linkpath-worker.fly.dev/health
+# → {"status":"ok","timestamp":"..."}
 ```
 
-**Fly.io pricing:** Free tier covers light usage. ~$5-10/mo for real use. Scales to zero when idle.
+Update Convex to point at it:
 
-#### Other Worker Hosting Options
+```bash
+npx convex env set BROWSER_WORKER_URL "https://linkpath-worker.fly.dev"
+```
 
-| Option | Pros | Cons | Cost |
-|--------|------|------|------|
-| **Fly.io** ⭐ | Easiest, Docker native, scales to zero | Cold starts ~2s | Free tier, then ~$5/mo |
-| **Railway** | GitHub auto-deploy, zero config | No free tier | $5/mo minimum |
-| **Render** | Free tier available | Cold starts ~30s on free | Free / $7/mo |
-| **Browserless.io** | Managed Playwright, zero infra | Less control, API changes needed | $0.01/session |
-| **Modal.com** | Serverless, pay-per-second | Overkill for MVP | Usage-based |
+**Fly.io pricing:** Free tier for hobby. ~$5-10/mo for real traffic. Scales to zero when idle.
+
+#### Alternative worker hosts
+
+| Option | Best for | Cost |
+|--------|----------|------|
+| **Fly.io** ⭐ | Easiest, Docker native, London region | Free → ~$5/mo |
+| **Railway** | GitHub auto-deploy | $5/mo min |
+| **Render** | Free tier | Free (30s cold starts) |
+| **Browserless.io** | Zero infra | $0.01/session |
 
 ---
 
@@ -226,9 +285,8 @@ npx convex env set BROWSER_WORKER_URL https://linkpath-worker.fly.dev
 ```
 ┌─────────────────┐     ┌──────────────┐     ┌─────────────────┐
 │   Next.js App   │────▶│    Convex    │────▶│ Playwright      │
-│   (Frontend)    │◀────│   (Backend)   │◀────│ Worker (HTTP)   │
+│   (Vercel)      │◀────│  (Cloud DB)  │◀────│ Worker (Fly.io) │
 └─────────────────┘     └──────────────┘     └─────────────────┘
-        │                       │
         │                       │
    ┌────┴────┐            ┌────┴────┐
    │  Clerk  │            │ Stripe  │
@@ -236,7 +294,33 @@ npx convex env set BROWSER_WORKER_URL https://linkpath-worker.fly.dev
    └─────────┘            └─────────┘
 ```
 
-1. User submits URL → Convex creates test + deducts credits + schedules action
-2. Convex action calls Playwright worker → follows redirects, captures cookies, screenshots
-3. Results stored in Convex → real-time updates push to frontend
-4. User sees redirect chain, cookies, network detection, screenshot
+**How a test runs:**
+
+1. User pastes URL → clicks "Run Quick Check"
+2. Convex deducts credits → creates test record → schedules action
+3. Convex action calls Playwright worker via HTTP
+4. Worker launches headless Chrome → follows redirects → captures cookies → takes screenshot
+5. Worker returns results → Convex stores in DB + file storage
+6. Frontend auto-updates in real-time (Convex reactivity) → user sees results
+
+---
+
+## Troubleshooting
+
+**"Not authenticated" errors on every page?**
+→ Check that `CLERK_ISSUER_URL` is set in Convex env vars and matches your Clerk JWT template issuer.
+
+**Tests stuck on "Running" forever?**
+→ Check the worker is running (`curl http://localhost:8080/health`). The cleanup cron auto-fails stuck tests after 5 minutes.
+
+**Clerk sign-in shows white flash?**
+→ Make sure you're on the latest code — auth pages use Clerk's dark theme.
+
+**"Insufficient credits" on first test?**
+→ The auto-provisioning gives 50 credits on signup. Check the browser console for errors on the `ensureProfile` mutation.
+
+**Worker crashes on macOS ARM?**
+→ Run `npx playwright install chromium` again. Playwright needs the correct binary for your architecture.
+
+**Stripe webhook not firing?**
+→ For local dev, use `stripe listen --forward-to`. For prod, check the webhook URL matches your Convex HTTP endpoint exactly.
