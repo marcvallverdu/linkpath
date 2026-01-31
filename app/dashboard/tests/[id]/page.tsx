@@ -294,6 +294,45 @@ export default function TestDetailPage() {
         </div>
       )}
 
+      {/* CMP Consent Results */}
+      {report?.cmpResult && (
+        <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+          <h3 className="mb-3 text-sm font-medium text-slate-200">CMP Consent Test</h3>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div>
+              <p className="text-xs text-slate-400">Banner Detected</p>
+              <p className={cn("text-sm font-medium", (report.cmpResult as Record<string, unknown>).cmpDetected ? "text-green-400" : "text-red-400")}>
+                {(report.cmpResult as Record<string, unknown>).cmpDetected ? "✓ Yes" : "✗ No"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Consent Accepted</p>
+              <p className={cn("text-sm font-medium", (report.cmpResult as Record<string, unknown>).consentAccepted ? "text-green-400" : "text-yellow-400")}>
+                {(report.cmpResult as Record<string, unknown>).consentAccepted ? "✓ Yes" : "✗ Could not accept"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400">Cookies Changed</p>
+              <p className="text-sm font-medium text-slate-200">
+                {String((report.cmpResult as Record<string, unknown>).cookiesBeforeConsent)} → {String((report.cmpResult as Record<string, unknown>).cookiesAfterConsent)}
+              </p>
+            </div>
+          </div>
+          {((report.cmpResult as Record<string, unknown>).newCookiesAfterConsent as Array<Record<string, unknown>>)?.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-400 mb-2">New cookies set after consent:</p>
+              <div className="flex flex-wrap gap-2">
+                {((report.cmpResult as Record<string, unknown>).newCookiesAfterConsent as Array<Record<string, unknown>>).map((c, i) => (
+                  <span key={i} className="rounded bg-emerald-500/20 px-2 py-1 text-xs text-emerald-300">
+                    {String(c.name)} <span className="text-emerald-500">({String(c.domain)})</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Screenshot */}
       {screenshots && screenshots.length > 0 && (
         <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">

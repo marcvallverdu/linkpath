@@ -175,6 +175,35 @@ export const executeTest = internalAction({
         })
       );
 
+      // Include CMP result if present (cmp_test type)
+      const cmpResult = result.cmpResult
+        ? {
+            cmpDetected: result.cmpResult.cmpDetected,
+            cmpSelector: result.cmpResult.cmpSelector,
+            consentAccepted: result.cmpResult.consentAccepted,
+            cookiesBeforeConsent: result.cmpResult.cookiesBeforeConsent,
+            cookiesAfterConsent: result.cmpResult.cookiesAfterConsent,
+            newCookiesAfterConsent: result.cmpResult.newCookiesAfterConsent,
+            // Don't store screenshotBeforeConsent base64 — save separately
+          }
+        : undefined;
+
+      // Store pre-consent screenshot if available
+      if (result.cmpResult?.screenshotBeforeConsent) {
+        const bStr = atob(result.cmpResult.screenshotBeforeConsent);
+        const bBytes = new Uint8Array(bStr.length);
+        for (let i = 0; i < bStr.length; i++) {
+          bBytes[i] = bStr.charCodeAt(i);
+        }
+        const bBlob = new Blob([bBytes], { type: "image/png" });
+        const bStorageId = await ctx.storage.store(bBlob);
+        await ctx.runMutation(internal.testPipeline.saveScreenshot, {
+          testId,
+          step: "before_consent",
+          storageId: bStorageId,
+        });
+      }
+
       const report = {
         redirectChain: trimmedChain,
         finalUrl: result.finalUrl,
@@ -182,6 +211,7 @@ export const executeTest = internalAction({
         networkDetected: result.networkDetected,
         parameterPreservation: result.parameterPreservation,
         timing: result.timing,
+        ...(cmpResult ? { cmpResult } : {}),
       };
 
       // 6. Update test with success
