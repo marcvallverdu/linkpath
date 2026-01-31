@@ -129,10 +129,17 @@ export const handleCheckoutCompleted = internalMutation({
     credits: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const org = await ctx.db
-      .query("organizations")
-      .filter((q) => q.eq(q.field("_id"), args.orgId))
-      .first();
+    // orgId comes as string from Stripe metadata — cast back to Convex ID
+    let org;
+    try {
+      org = await ctx.db.get(args.orgId as any);
+    } catch {
+      // If ID format is invalid, try filter
+      org = await ctx.db
+        .query("organizations")
+        .filter((q) => q.eq(q.field("_id"), args.orgId))
+        .first();
+    }
     if (!org) return;
 
     if (args.type === "subscription") {

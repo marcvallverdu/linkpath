@@ -77,12 +77,20 @@ export const deleteAccount = mutation({
       .unique();
     if (!profile) throw new Error("Profile not found");
 
-    // Delete all tests for user's org
+    // Delete all screenshots and storage files for user's tests
     const tests = await ctx.db
       .query("tests")
       .withIndex("by_org", (q) => q.eq("orgId", profile.currentOrgId))
       .collect();
     for (const test of tests) {
+      const screenshots = await ctx.db
+        .query("screenshots")
+        .withIndex("by_test", (q) => q.eq("testId", test._id))
+        .collect();
+      for (const screenshot of screenshots) {
+        await ctx.storage.delete(screenshot.storageId);
+        await ctx.db.delete(screenshot._id);
+      }
       await ctx.db.delete(test._id);
     }
 

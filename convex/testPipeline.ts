@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
 
 // --- Internal Mutations ---
 
@@ -112,9 +111,14 @@ export const executeTest = internalAction({
 
     try {
       // 3. Call the browser worker
+      const workerSecret = process.env.WORKER_SECRET || "";
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (workerSecret) {
+        headers["Authorization"] = `Bearer ${workerSecret}`;
+      }
       const response = await fetch(`${workerUrl}/run`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           testId,
           url: test.url,
@@ -140,7 +144,7 @@ export const executeTest = internalAction({
         for (let i = 0; i < binaryStr.length; i++) {
           bytes[i] = binaryStr.charCodeAt(i);
         }
-        const blob = new Blob([bytes], { type: "image/png" });
+        const blob = new Blob([bytes], { type: "image/jpeg" });
         const storageId = await ctx.storage.store(blob);
         await ctx.runMutation(internal.testPipeline.saveScreenshot, {
           testId,
@@ -195,7 +199,7 @@ export const executeTest = internalAction({
         for (let i = 0; i < bStr.length; i++) {
           bBytes[i] = bStr.charCodeAt(i);
         }
-        const bBlob = new Blob([bBytes], { type: "image/png" });
+        const bBlob = new Blob([bBytes], { type: "image/jpeg" });
         const bStorageId = await ctx.storage.store(bBlob);
         await ctx.runMutation(internal.testPipeline.saveScreenshot, {
           testId,

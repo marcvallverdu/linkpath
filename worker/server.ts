@@ -5,6 +5,7 @@ const app = express();
 app.use(express.json({ limit: "2mb" }));
 
 const PORT = Number(process.env.PORT || 8080);
+const WORKER_SECRET = process.env.WORKER_SECRET || "";
 
 type TestType = "quick_check" | "cmp_test";
 
@@ -94,7 +95,8 @@ const runQuickCheck = async (url: string) => {
     redirectChain.reverse();
 
     const cookies = await context.cookies();
-    const screenshotBuffer = await page.screenshot({ type: "png", fullPage: true });
+    // Use jpeg for smaller size, viewport only (not fullPage) to cap at ~500KB
+    const screenshotBuffer = await page.screenshot({ type: "jpeg", quality: 75, fullPage: false });
     const screenshot = screenshotBuffer.toString("base64");
 
     const finalUrl = response.url();
@@ -285,6 +287,14 @@ app.get("/health", (_req, res) => {
 });
 
 app.post("/run", async (req, res) => {
+  // Verify shared secret if configured
+  if (WORKER_SECRET) {
+    const auth = req.headers.authorization;
+    if (auth !== `Bearer ${WORKER_SECRET}`) {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+  }
+
   const { testId, url, testType } = req.body as {
     testId?: string;
     url?: string;

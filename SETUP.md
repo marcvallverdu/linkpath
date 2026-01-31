@@ -100,10 +100,16 @@ npm run dev
 
 You should see: `Worker listening on port 8080`
 
-Now tell Convex where the worker is:
+Now tell Convex where the worker is and set a shared secret:
 
 ```bash
 npx convex env set BROWSER_WORKER_URL "http://localhost:8080"
+npx convex env set WORKER_SECRET "pick-any-random-string-here"
+```
+
+Also set the same secret for the worker (create `worker/.env`):
+```env
+WORKER_SECRET=pick-any-random-string-here
 ```
 
 ---

@@ -136,23 +136,36 @@ export const listByOrg = query({
           q.eq("orgId", profile.currentOrgId).eq("status", args.status!)
         )
         .order("desc")
-        .collect();
+        .take(200);
     } else {
       tests = await ctx.db
         .query("tests")
         .withIndex("by_org", (q) => q.eq("orgId", profile.currentOrgId))
         .order("desc")
-        .collect();
+        .take(200);
     }
 
     return tests;
   },
 });
 
-// Query: get screenshots for a test
+// Query: get screenshots for a test (auth-checked via test ownership)
 export const getScreenshots = query({
   args: { testId: v.id("tests") },
   handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+
+    // Verify ownership
+    const test = await ctx.db.get(args.testId);
+    if (!test) return [];
+
+    const profile = await ctx.db
+      .query("profiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", identity.subject))
+      .unique();
+    if (!profile || profile.currentOrgId !== test.orgId) return [];
+
     const screenshots = await ctx.db
       .query("screenshots")
       .withIndex("by_test", (q) => q.eq("testId", args.testId))

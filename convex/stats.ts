@@ -14,10 +14,12 @@ export const getDashboardStats = query({
 
     const orgId = profile.currentOrgId;
 
+    // Cap at 1000 most recent tests for stats (prevents OOM on large orgs)
     const allTests = await ctx.db
       .query("tests")
       .withIndex("by_org", (q) => q.eq("orgId", orgId))
-      .collect();
+      .order("desc")
+      .take(1000);
 
     const totalTests = allTests.length;
     const successCount = allTests.filter((t) => t.status === "success").length;
