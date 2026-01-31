@@ -2,3 +2,8 @@
 # This file is append-only. Each iteration adds notes below.
 # ============================================================
 
+
+[2026-01-31] Story-001 scaffolded Next.js 15 app router, Tailwind v4 wiring, shadcn Button, Convex client provider, ESLint + Prettier, strict TS. Added core config files, hello world page, Convex schema stub, and example env.
+- npm install timed out due to registry/network; typecheck failed because tsc not installed.
+
+[2026-01-31] Story-002 implemented full Convex schema with auth tables, MVP entities, indexes, and featureFlags.

@@ -5,7 +5,7 @@
     "description": "Project scaffolding: Next.js 15 App Router + Convex + Tailwind v4 + shadcn/ui",
     "acceptance": "Running `npm run dev` starts the app on localhost:3000 with a hello world page. Convex dev server connects. Tailwind classes render. shadcn/ui Button component works. TypeScript strict mode enabled. ESLint + Prettier configured.",
     "priority": 1,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-002",
@@ -13,7 +13,7 @@
     "description": "Convex schema: deploy all MVP tables (profiles, organizations, orgMembers, tests, screenshots, creditTransactions, featureFlags)",
     "acceptance": "Running `npx convex dev` deploys schema without errors. All tables exist with correct fields, types, and indexes as defined in PRD section 5. Validation functions exist for all field types.",
     "priority": 2,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-003",
