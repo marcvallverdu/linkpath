@@ -76,3 +76,47 @@
 - Clickable rows navigate to test detail
 - Empty state with CTA to run first test
 - Loading skeleton states
+
+[2026-01-31] Stories 012-020 implemented directly (Big L, no Codex).
+
+Story-012: Marked done (duplicate of story-011, test history list).
+
+Story-013: Dashboard home with summary stats.
+- convex/stats.ts: getDashboardStats query (totals, network breakdown, recent tests, monthly credits)
+- Updated dashboard page with stat cards (total/success/failed/running) + recent tests list
+- Form now navigates to test detail after creation
+
+Story-014: Stripe integration.
+- convex/stripe.ts: createCheckoutSession (subscription), createCreditPackCheckout (one-time)
+- convex/http.ts: Stripe webhook handler for checkout.session.completed
+- Handles both subscription upgrades (Pro plan + 500 credits) and credit pack purchases
+- Three pack sizes: 50/$9, 200/$29, 500/$59
+
+Story-015: Credit balance tracking.
+- Already built into existing code: header balance display, deduction on test create, refund on failure, zero-credit block
+
+Story-016: Landing page.
+- Hero with CTA, stats bar, 6 feature cards, 3-tier pricing table (Free/Pro/Agency), footer
+- Clean emerald/slate design system
+
+Story-017: Settings page.
+- convex/settings.ts: getCreditHistory, updateProfile, deleteAccount mutations
+- Profile editing, plan display, credit pack purchase buttons, credit history table
+- Danger zone with DELETE confirmation
+
+Story-018: Error handling.
+- app/error.tsx: global error boundary
+- app/not-found.tsx: 404 page
+- app/dashboard/error.tsx: dashboard-scoped error boundary
+- app/dashboard/loading.tsx: skeleton loading states
+
+Story-019: Shareable test reports.
+- convex/share.ts: enableShare (generates nanoid), disableShare, getSharedTest (public query)
+- app/share/[id]/page.tsx: public report page (no auth required) with redirect chain, cookies, screenshot
+- CTA to sign up at bottom
+
+Story-020: Onboarding flow.
+- app/dashboard/onboarding/page.tsx: 2-step flow
+- Step 1: Role selection (publisher/agency/network/brand/other)
+- Step 2: First test with example links or custom URL
+- Skip option to go straight to dashboard

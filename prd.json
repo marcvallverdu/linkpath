@@ -93,7 +93,7 @@
     "description": "Test history list: paginated list of all tests with filtering by status, network, test type, and date range",
     "acceptance": "Link Checks page (/dashboard/tests) shows a table/list of all tests for the current org. Columns: URL (truncated), network (icon + name), test type, status (color badge), created date, credits used. Supports: filtering by status (all/success/failed/running), filtering by network, filtering by test type, date range picker, pagination (20 per page). Empty state shows prompt to run first test. List updates in real-time when new tests complete.",
     "priority": 12,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-013",
@@ -101,7 +101,7 @@
     "description": "Dashboard home: summary stats, recent tests, and quick action to start new test",
     "acceptance": "Dashboard home (/dashboard) shows: stats cards (total tests, pass rate, credits remaining, tests this month), recent 5 tests as compact cards, prominent 'New Check' button/input. Stats update in real-time. If user has no tests, show onboarding prompt with example affiliate link.",
     "priority": 13,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-014",
@@ -109,7 +109,7 @@
     "description": "Stripe integration: subscription checkout for Pro plan ($49/mo) via Stripe Checkout + webhook handler",
     "acceptance": "Settings page shows current plan (Free) with upgrade button. Clicking 'Upgrade to Pro' opens Stripe Checkout with Pro plan ($49/mo). On successful payment, Stripe webhook fires, Convex mutation updates org plan to 'pro', grants 5000 monthly credits, creates credit_transaction record. User returns to settings page showing Pro plan badge. Stripe Customer Portal accessible for managing subscription. Handle webhook events: checkout.session.completed, invoice.payment_succeeded, customer.subscription.updated, customer.subscription.deleted.",
     "priority": 14,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-015",
@@ -117,7 +117,7 @@
     "description": "Credit balance tracking: deduct on test creation, show balance in header, warn when low, block when zero",
     "acceptance": "Header always shows current credit balance with icon. When credits < 10: show amber warning. When credits = 0: test creation is blocked with 'Out of credits' message and upgrade CTA. Every test deduction creates a credit_transaction record (type: 'test_charge', negative amount). Credit balance is calculated from org.creditBalance (denormalized, updated atomically with test creation). Settings page shows credit transaction history.",
     "priority": 15,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-016",
@@ -125,7 +125,7 @@
     "description": "Landing page: hero section with URL input, problem stats, feature overview, pricing table, CTA",
     "acceptance": "Public landing page at / (not behind auth) with: navigation (Features, Pricing, Log in, Get Started Free), hero with headline 'Stop losing commissions to broken affiliate tracking', subheadline, URL input that redirects to signup, social proof stats ($2.4B lost, 14% loss rate, <30s test time), problem section (broken redirects, CMP failures, link rot), 3-step how it works, test type cards (4 levels), pricing table (Free, Pro), footer. Page is responsive, fast (Server Components), and SEO-optimized with proper meta tags. URL input on hero submits to /signup?url={encoded_url} so first test is pre-populated after signup.",
     "priority": 16,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-017",
@@ -133,7 +133,7 @@
     "description": "Settings page: profile editing, plan display, credit history, and danger zone (delete account)",
     "acceptance": "Settings page (/dashboard/settings) with tabs: Profile (name, email \u2014 read only from auth), Plan (current plan, upgrade/manage subscription button, next billing date), Credits (transaction history table with date, type, amount, balance), Account (delete account with confirmation dialog). Plan section links to Stripe Customer Portal for subscription management.",
     "priority": 17,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-018",
@@ -141,7 +141,7 @@
     "description": "Error handling: global error boundary, test failure states, network errors, loading states",
     "acceptance": "App has a global error boundary that catches unhandled errors and shows a friendly error page. All async operations show loading spinners/skeletons. Failed tests show clear error messages with retry option. Network disconnection shows a banner. Convex connection loss shows reconnecting state. Toast notifications for success/error actions (test created, test failed, credits purchased, etc.).",
     "priority": 18,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-019",
@@ -149,7 +149,7 @@
     "description": "Shareable test reports: public URL for any test result that can be shared without auth",
     "acceptance": "Each test has a 'Share' button that generates a public URL (/report/[shareId]). Public report page shows: test results, redirect chain, cookies, screenshots, network detected \u2014 same as authenticated view but read-only and no sidebar. Share link uses a random ID (not test ID). Report page has LinkPath branding and CTA to sign up. Share can be toggled off (revokes public access).",
     "priority": 19,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-020",
@@ -157,6 +157,6 @@
     "description": "Onboarding flow: post-signup role selection + first test with pre-populated example link",
     "acceptance": "After first signup, user sees a 3-step onboarding: 1) Role selection (Publisher, Creator, Agency/Network, Skip), 2) First test with pre-populated Awin Nike example link and 'Run Your First Check' CTA, 3) Dashboard with getting started checklist (run first test, test a top link, set up monitoring [coming soon]). Role is stored in profile. If user arrived with ?url= param, that URL is pre-populated instead of the example. Onboarding is skippable. Only shows once (tracked in profile).",
     "priority": 20,
-    "passes": false
+    "passes": true
   }
 ]
