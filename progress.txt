@@ -33,3 +33,11 @@
 - No custom auth backend needed — Clerk handles everything
 - Convex functions use ctx.auth.getUserIdentity() to get Clerk user
 - profiles.userId stores identity.subject (Clerk user ID)
+
+[2026-01-31] Story-004 added auto-provisioning mutation (profile + personal org + welcome credits) and wired dashboard layout to invoke it on first authenticated load.
+
+[2026-01-31] Story-005 built the dashboard shell: sidebar/nav with active states and disabled Monitoring, responsive mobile bottom nav, header with org name, credit badge, and Clerk UserButton.
+
+[2026-01-31] Story-006 added test creation mutation + dashboard form with URL validation, test type selector, credit-aware submit state, and queued test creation.
+
+[2026-01-31] Story-007 added affiliate network detection utility + Vitest coverage with 3+ URL cases per network and unknown fallback.

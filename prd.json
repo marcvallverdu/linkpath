@@ -19,7 +19,7 @@
     "id": "story-003",
     "phase": "foundation",
     "description": "Auth: Convex Auth with Google OAuth + email/password sign-up and sign-in",
-    "acceptance": "User can sign up with Google OAuth or email/password. User can sign in with either method. Auth state persists across page refreshes. Sign-out works. Auth redirects work (unauthenticated users \u2192 /login, authenticated users \u2192 /dashboard).",
+    "acceptance": "User can sign up with Google OAuth or email/password. User can sign in with either method. Auth state persists across page refreshes. Sign-out works. Auth redirects work (unauthenticated users → /login, authenticated users → /dashboard).",
     "priority": 3,
     "passes": true
   },
@@ -29,15 +29,15 @@
     "description": "Auto-provisioning: on signup, create profile + personal org + grant 50 free credits",
     "acceptance": "When a new user signs up, a profile record is created, a personal organization (is_personal=true, name='Personal') is created, user is added as 'owner' in orgMembers, and a creditTransaction of type 'welcome_bonus' with amount 50 is recorded. Organization creditBalance shows 50.",
     "priority": 4,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-005",
     "phase": "foundation",
     "description": "App shell: dashboard layout with sidebar navigation, header with credit balance, and responsive design",
-    "acceptance": "Authenticated users see a dashboard layout with: sidebar (Dashboard, Link Checks, Monitoring [disabled], Settings), header with org name + credit balance badge + user avatar/menu. Layout is responsive \u2014 sidebar collapses on mobile. Active nav item is highlighted. Clicking 'Link Checks' navigates to /dashboard/tests. Clicking 'Settings' navigates to /dashboard/settings.",
+    "acceptance": "Authenticated users see a dashboard layout with: sidebar (Dashboard, Link Checks, Monitoring [disabled], Settings), header with org name + credit balance badge + user avatar/menu. Layout is responsive — sidebar collapses on mobile. Active nav item is highlighted. Clicking 'Link Checks' navigates to /dashboard/tests. Clicking 'Settings' navigates to /dashboard/settings.",
     "priority": 5,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-006",
@@ -45,7 +45,7 @@
     "description": "Test creation form: URL input with validation + test type selector + submit button",
     "acceptance": "Dashboard shows a prominent URL input field with placeholder 'Paste your affiliate link...'. Test type selector shows Quick Link Check (1 credit) and CMP Consent Test (3 credits) with descriptions. Submit button shows credit cost and is disabled when URL is empty or credits insufficient. Invalid URLs show error message. Form submits and creates a test record in Convex with status 'queued'.",
     "priority": 6,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-007",
@@ -53,7 +53,7 @@
     "description": "Network detection: detect affiliate network from URL using regex patterns for Awin, CJ, Rakuten, Impact, ShareASale, Amazon",
     "acceptance": "A utility function detectNetwork(url) correctly identifies: Awin (awin1.com, awltovhc.com, zenaps.com), CJ (dpbolvw.net, jdoqocy.com, etc.), Rakuten (click.linksynergy.com), Impact (impact.com, .sjv.io, .evyy.net), ShareASale (shareasale.com, shrsl.com), Amazon (amazon.* with tag= param, amzn.to). Unknown URLs return 'unknown'. Unit tests pass for all patterns with at least 3 test URLs per network.",
     "priority": 7,
-    "passes": false
+    "passes": true
   },
   {
     "id": "story-008",
@@ -75,7 +75,7 @@
     "id": "story-010",
     "phase": "core-testing",
     "description": "Quick Link Check results view: show redirect chain, network detected, cookies, parameter preservation, screenshot",
-    "acceptance": "Test detail page (/dashboard/tests/[id]) shows: status badge (queued/running/success/failed), detected affiliate network with logo/icon, full redirect chain as a visual flow (URL \u2192 URL \u2192 URL with status codes), list of cookies set (name, domain, value preview, httpOnly, secure, sameSite), parameter preservation check (were affiliate params maintained through redirects?), landing page screenshot (expandable), test timing, and a 'Run Again' button. Page updates in real-time while test is running.",
+    "acceptance": "Test detail page (/dashboard/tests/[id]) shows: status badge (queued/running/success/failed), detected affiliate network with logo/icon, full redirect chain as a visual flow (URL → URL → URL with status codes), list of cookies set (name, domain, value preview, httpOnly, secure, sameSite), parameter preservation check (were affiliate params maintained through redirects?), landing page screenshot (expandable), test timing, and a 'Run Again' button. Page updates in real-time while test is running.",
     "priority": 10,
     "passes": false
   },
@@ -131,7 +131,7 @@
     "id": "story-017",
     "phase": "landing",
     "description": "Settings page: profile editing, plan display, credit history, and danger zone (delete account)",
-    "acceptance": "Settings page (/dashboard/settings) with tabs: Profile (name, email \u2014 read only from auth), Plan (current plan, upgrade/manage subscription button, next billing date), Credits (transaction history table with date, type, amount, balance), Account (delete account with confirmation dialog). Plan section links to Stripe Customer Portal for subscription management.",
+    "acceptance": "Settings page (/dashboard/settings) with tabs: Profile (name, email — read only from auth), Plan (current plan, upgrade/manage subscription button, next billing date), Credits (transaction history table with date, type, amount, balance), Account (delete account with confirmation dialog). Plan section links to Stripe Customer Portal for subscription management.",
     "priority": 17,
     "passes": false
   },
@@ -147,7 +147,7 @@
     "id": "story-019",
     "phase": "polish",
     "description": "Shareable test reports: public URL for any test result that can be shared without auth",
-    "acceptance": "Each test has a 'Share' button that generates a public URL (/report/[shareId]). Public report page shows: test results, redirect chain, cookies, screenshots, network detected \u2014 same as authenticated view but read-only and no sidebar. Share link uses a random ID (not test ID). Report page has LinkPath branding and CTA to sign up. Share can be toggled off (revokes public access).",
+    "acceptance": "Each test has a 'Share' button that generates a public URL (/report/[shareId]). Public report page shows: test results, redirect chain, cookies, screenshots, network detected — same as authenticated view but read-only and no sidebar. Share link uses a random ID (not test ID). Report page has LinkPath branding and CTA to sign up. Share can be toggled off (revokes public access).",
     "priority": 19,
     "passes": false
   },
